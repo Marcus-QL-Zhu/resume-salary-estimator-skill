@@ -20,6 +20,7 @@ The skill is domain-general. Do not assume any specific platform, employer datas
 
 2. Build the baseline model first.
    - Use structured features such as years of experience, current function, current level, target function, target level, education, location, and work mode.
+   - Include education fields when available: highest degree, overseas education, elite-school signal, field relevance, and international language signal.
    - Keep a simple experience-only curve as a transparent benchmark.
    - Fit a stronger baseline with role/function/level controls before interpreting resume text signals.
 
@@ -42,6 +43,7 @@ The skill is domain-general. Do not assume any specific platform, employer datas
 6. Produce an estimator output.
    - First return the objective algorithmic estimate and its 80% prediction interval.
    - State the model inputs, baseline estimate, and any rule-based numeric adjustments used by the skill.
+   - Explicitly state whether education was included in the objective model inputs. If education is missing or only used qualitatively, say so.
    - Then provide a separate subjective qualitative analysis section.
    - In the subjective section, describe factors that may justify upward or downward interpretation, but do not give a second adjusted salary number or override the algorithmic estimate.
    - Add explanation badges for signals that are useful but not independently salary-predictive.

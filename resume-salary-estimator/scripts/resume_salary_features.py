@@ -28,6 +28,64 @@ RESPONSIBILITY_WORDS = ["responsible", "duty", "managed", "participated", "负�
 RESULT_WORDS = ["increase", "reduce", "improve", "revenue", "cost", "efficiency", "quality", "latency", "uptime", "提升", "降低", "增长", "节省", "营收", "成本", "效率", "质量", "良率"]
 TOOL_WORDS = ["python", "java", "sql", "linux", "docker", "kubernetes", "aws", "azure", "git", "jenkins", "react", "vue", "spark", "pytorch", "tensorflow"]
 
+DEGREE_PATTERNS = {
+    "phd": ["phd", "doctor", "doctoral", "博士"],
+    "mba": ["mba", "emba", "工商管理硕士"],
+    "master": ["master", "msc", "m.s.", "硕士", "研究生"],
+    "bachelor": ["bachelor", "bsc", "b.s.", "本科", "学士"],
+    "associate": ["associate", "college", "大专", "专科"],
+}
+OVERSEAS_EDUCATION_WORDS = [
+    "university of",
+    "institute of technology",
+    "college",
+    "usa",
+    "uk",
+    "germany",
+    "france",
+    "canada",
+    "australia",
+    "singapore",
+    "japan",
+    "korea",
+    "海外",
+    "留学",
+    "德国",
+    "美国",
+    "英国",
+    "法国",
+    "加拿大",
+    "澳大利亚",
+    "新加坡",
+    "日本",
+    "韩国",
+]
+ELITE_EDUCATION_WORDS = [
+    "985",
+    "211",
+    "double first-class",
+    "双一流",
+    "ivy league",
+    "oxford",
+    "cambridge",
+    "mit",
+    "stanford",
+    "harvard",
+    "tsinghua",
+    "peking university",
+    "清华",
+    "北大",
+]
+LANGUAGE_WORDS = ["english", "german", "french", "japanese", "korean", "英语", "德语", "法语", "日语", "韩语"]
+EDUCATION_FIELD_KEYWORDS = {
+    "engineering": ["engineering", "engineer", "机械", "车辆", "电子", "自动化", "控制", "工程"],
+    "computer_science": ["computer science", "software", "计算机", "软件", "信息"],
+    "business": ["business", "management", "mba", "工商管理", "管理", "市场营销"],
+    "finance": ["finance", "accounting", "economics", "金融", "会计", "经济"],
+    "law_hr": ["law", "legal", "human resources", "法律", "法学", "人力资源"],
+    "science": ["physics", "chemistry", "math", "statistics", "物理", "化学", "数学", "统计"],
+}
+
 DATE_RE = re.compile(
     r"(?P<start_y>20\d{2}|19\d{2})[./-](?P<start_m>\d{1,2})\s*[-–—]\s*"
     r"(?:(?P<end_y>20\d{2}|19\d{2})[./-](?P<end_m>\d{1,2})|(?P<present>present|now|current|至今|现在))"
@@ -63,6 +121,27 @@ def numeric_result_count(text: str) -> int:
 def function_hits(text: str, min_hits_per_family: int = 2) -> tuple[int, str]:
     hits = [family for family, terms in FUNCTION_KEYWORDS.items() if count_terms(text, terms) >= min_hits_per_family]
     return len(hits), "|".join(hits)
+
+
+def education_features(text: str) -> dict:
+    text = "" if pd.isna(text) else str(text)
+    degree_order = ["associate", "bachelor", "master", "mba", "phd"]
+    ranks = {name: i + 1 for i, name in enumerate(degree_order)}
+    hits = [name for name in degree_order if count_terms(text, DEGREE_PATTERNS[name]) > 0]
+    highest = max(hits, key=lambda name: ranks[name]) if hits else "unknown"
+    fields = [name for name, terms in EDUCATION_FIELD_KEYWORDS.items() if count_terms(text, terms) > 0]
+    return {
+        "highest_degree_group": highest,
+        "highest_degree_rank": ranks.get(highest, 0),
+        "has_master_or_above": int(ranks.get(highest, 0) >= ranks["master"]),
+        "has_phd": int(highest == "phd"),
+        "has_mba": int("mba" in hits),
+        "overseas_education_signal": int(count_terms(text, OVERSEAS_EDUCATION_WORDS) > 0),
+        "elite_education_signal": int(count_terms(text, ELITE_EDUCATION_WORDS) > 0),
+        "international_language_signal": int(count_terms(text, LANGUAGE_WORDS) > 0),
+        "education_field_count": len(fields),
+        "education_field_groups": "|".join(fields),
+    }
 
 
 def month_index(value: str) -> int | None:
@@ -135,6 +214,14 @@ def add_features(df: pd.DataFrame, resume_col: str) -> pd.DataFrame:
     out["numeric_result_count"] = text.map(numeric_result_count)
     out["tool_count"] = text.map(lambda s: count_terms(s, TOOL_WORDS))
     out["function_family_count"], out["function_families"] = zip(*text.map(function_hits))
+    education = pd.DataFrame([education_features(s) for s in text], index=out.index)
+    out = pd.concat([out, education], axis=1)
+    out["education_signal_score"] = (
+        out["highest_degree_rank"]
+        + out["overseas_education_signal"]
+        + out["elite_education_signal"]
+        + out["international_language_signal"]
+    )
 
     roles = text.map(extract_roles)
     out["parsed_roles_json"] = roles.map(lambda rs: json.dumps([asdict(r) for r in rs], ensure_ascii=False))

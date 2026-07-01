@@ -36,8 +36,12 @@ Prefer structured, auditable inputs:
 - current level;
 - target or expected function;
 - target or expected level;
+- highest degree;
+- overseas education signal;
+- elite-school signal;
+- education field relevance;
+- international language signal;
 - location;
-- education level;
 - work mode or job type where relevant.
 
 A useful transparent experience baseline is a quadratic log-salary curve:
@@ -49,6 +53,29 @@ log(salary + 1) = b0 + b1 * years_experience + b2 * years_experience^2
 The quadratic term captures diminishing marginal returns to experience.
 
 ## Resume-Derived Indicators
+
+### Education Signals
+
+Purpose: capture structured education information before using subjective interpretation.
+
+Recommended fields:
+
+- `highest_degree_group`: associate, bachelor, master, mba, phd, or unknown;
+- `highest_degree_rank`: ordinal encoding of the highest degree;
+- `has_master_or_above`;
+- `has_phd`;
+- `has_mba`;
+- `overseas_education_signal`;
+- `elite_education_signal`;
+- `education_field_groups`;
+- `international_language_signal`.
+
+Interpretation:
+
+- Treat education as a baseline/profile feature, not a resume-text premium by default.
+- Validate apparent and residual lift before assigning any numeric adjustment.
+- Domain fit matters. A technical master's degree may matter more in engineering roles, while MBA or international language signals may matter more in product, strategy, sales, and general-management roles.
+- If education is not included in the objective model, explicitly disclose that it was used only in qualitative analysis.
 
 ### End-to-End Ownership
 

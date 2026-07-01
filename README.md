@@ -40,6 +40,7 @@ The reference guide includes reusable indicator patterns such as:
 - recent short-tenure risk;
 - tool stack without results;
 - title inflation risk.
+- education signals such as highest degree, overseas education, elite-school signal, field relevance, and international language signal.
 
 Each indicator is intended as a template. Thresholds, keywords, and model weights should be validated on the user's own data before use.
 
