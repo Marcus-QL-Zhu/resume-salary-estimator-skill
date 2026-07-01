@@ -12,6 +12,7 @@ The skill guides Codex to:
 
 - parse resume text and structured candidate fields;
 - build a baseline salary model from experience, function, level, target role, and other profile variables;
+- prefer structured education fields over full-resume education parsing when degree, school, or major columns are already available;
 - engineer resume-derived value and risk signals;
 - compare apparent salary differences with residual salary differences;
 - output an objective algorithmic estimate with a prediction interval;
@@ -65,10 +66,11 @@ python resume-salary-estimator/scripts/resume_salary_features.py \
   --input candidates.csv \
   --output candidate_features.csv \
   --resume-col resume_text \
+  --degree-col degree_group \
   --salary-col expected_salary_annual
 ```
 
-The script creates generic resume signal columns. Review and adapt the dictionaries before treating the output as final.
+The script creates generic resume signal columns. If `--degree-col` is supplied, structured degree values are preferred over resume-text education parsing. Review and adapt the dictionaries before treating the output as final.
 
 ## Installation
 

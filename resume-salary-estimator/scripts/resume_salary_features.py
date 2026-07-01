@@ -144,6 +144,37 @@ def education_features(text: str) -> dict:
     }
 
 
+def normalize_degree_group(value: str) -> str:
+    value = "" if pd.isna(value) else str(value).strip().lower()
+    if not value:
+        return "unknown"
+    if any(token in value for token in ["phd", "doctor", "doctoral", "博士", "doctorate"]):
+        return "phd"
+    if any(token in value for token in ["mba", "emba", "工商管理硕士"]):
+        return "mba"
+    if any(token in value for token in ["master", "msc", "m.s.", "硕士", "研究生"]):
+        return "master"
+    if any(token in value for token in ["bachelor", "bsc", "b.s.", "本科", "学士"]):
+        return "bachelor"
+    if any(token in value for token in ["associate", "college", "大专", "专科", "college_or_below"]):
+        return "associate"
+    if value in {"doctor", "master", "mba_emba", "bachelor", "college_or_below", "missing", "unknown"}:
+        return {"doctor": "phd", "mba_emba": "mba", "college_or_below": "associate", "missing": "unknown"}.get(value, value)
+    return value
+
+
+def education_features_from_structured_degree(value: str) -> dict:
+    highest = normalize_degree_group(value)
+    ranks = {"unknown": 0, "associate": 1, "bachelor": 2, "master": 3, "mba": 3, "phd": 4}
+    return {
+        "highest_degree_group": highest,
+        "highest_degree_rank": ranks.get(highest, 0),
+        "has_master_or_above": int(ranks.get(highest, 0) >= ranks["master"]),
+        "has_phd": int(highest == "phd"),
+        "has_mba": int(highest == "mba"),
+    }
+
+
 def month_index(value: str) -> int | None:
     if value == "present":
         return None
@@ -204,7 +235,7 @@ def extract_roles(text: str) -> list[RoleTenure]:
     return roles
 
 
-def add_features(df: pd.DataFrame, resume_col: str) -> pd.DataFrame:
+def add_features(df: pd.DataFrame, resume_col: str, degree_col: str | None = None) -> pd.DataFrame:
     out = df.copy()
     text = out[resume_col].fillna("").astype(str)
     out["ownership_count"] = text.map(lambda s: count_terms(s, OWNERSHIP_WORDS))
@@ -215,6 +246,13 @@ def add_features(df: pd.DataFrame, resume_col: str) -> pd.DataFrame:
     out["tool_count"] = text.map(lambda s: count_terms(s, TOOL_WORDS))
     out["function_family_count"], out["function_families"] = zip(*text.map(function_hits))
     education = pd.DataFrame([education_features(s) for s in text], index=out.index)
+    if degree_col and degree_col in out.columns:
+        structured = pd.DataFrame([education_features_from_structured_degree(v) for v in out[degree_col]], index=out.index)
+        for col in structured.columns:
+            education[col] = structured[col]
+        education["education_source"] = "structured_degree_column"
+    else:
+        education["education_source"] = "resume_text"
     out = pd.concat([out, education], axis=1)
     out["education_signal_score"] = (
         out["highest_degree_rank"]
@@ -266,13 +304,14 @@ def main() -> None:
     parser.add_argument("--input", required=True, help="Input CSV path.")
     parser.add_argument("--output", required=True, help="Output CSV path.")
     parser.add_argument("--resume-col", default="resume_text", help="Column containing resume text.")
+    parser.add_argument("--degree-col", default=None, help="Optional structured highest-degree/degree-group column. Preferred over resume-text education parsing when present.")
     parser.add_argument("--salary-col", default=None, help="Optional salary column. Kept unchanged; useful for profiling.")
     args = parser.parse_args()
 
     df = pd.read_csv(args.input)
     if args.resume_col not in df.columns:
         raise SystemExit(f"Missing resume column: {args.resume_col}")
-    out = add_features(df, args.resume_col)
+    out = add_features(df, args.resume_col, args.degree_col)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(args.output, index=False)
 

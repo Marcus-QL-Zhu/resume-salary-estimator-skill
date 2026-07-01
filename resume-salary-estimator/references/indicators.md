@@ -58,6 +58,12 @@ The quadratic term captures diminishing marginal returns to experience.
 
 Purpose: capture structured education information before using subjective interpretation.
 
+Primary source:
+
+- Prefer already-structured education columns in the feature table, such as highest degree, top two education records, school, major, program, and degree group.
+- Use resume-text extraction only as a fallback when structured education fields are unavailable.
+- When structured fields and text-derived fields disagree, treat the structured field as authoritative unless manual inspection shows a parsing error.
+
 Recommended fields:
 
 - `highest_degree_group`: associate, bachelor, master, mba, phd, or unknown;
