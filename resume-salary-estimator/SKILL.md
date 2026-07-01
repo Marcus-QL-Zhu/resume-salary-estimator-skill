@@ -40,8 +40,10 @@ The skill is domain-general. Do not assume any specific platform, employer datas
    - Manually inspect examples when text extraction or section parsing may be noisy.
 
 6. Produce an estimator output.
-   - Return a baseline salary range.
-   - Add small, capped adjustments only for validated independent signals.
+   - First return the objective algorithmic estimate and its 80% prediction interval.
+   - State the model inputs, baseline estimate, and any rule-based numeric adjustments used by the skill.
+   - Then provide a separate subjective qualitative analysis section.
+   - In the subjective section, describe factors that may justify upward or downward interpretation, but do not give a second adjusted salary number or override the algorithmic estimate.
    - Add explanation badges for signals that are useful but not independently salary-predictive.
    - Include caveats about dataset scope and non-market-wide generalization.
 
@@ -60,13 +62,16 @@ The script creates generic resume signal columns. Read and adapt the dictionarie
 Use language like:
 
 ```text
-Based on similar candidates in the provided dataset, this profile is estimated around X-Y annual salary units. The estimate is driven mainly by function, level, and experience. Resume signals add the following context: ...
+Objective algorithmic result: based on similar candidates in the provided dataset, this profile is estimated at X annual salary units, with an 80% prediction interval of Y-Z. The estimate is driven mainly by function, level, and experience. Rule-based signal adjustments included: ...
+
+Subjective qualitative interpretation: the resume also shows factors that may support an upward/downward reading, such as ..., but these are not converted into a second numeric estimate.
 ```
 
 Avoid language like:
 
 ```text
 This candidate is worth exactly X.
+After qualitative judgment, I would change the estimate to X.
 ```
 
 ## References
