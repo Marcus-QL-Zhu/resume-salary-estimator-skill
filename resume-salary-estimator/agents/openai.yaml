@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resume Salary Estimator"
+  short_description: "Build explainable resume-based salary estimators."
+  default_prompt: "Use $resume-salary-estimator to estimate a candidate salary range from resume text and structured profile fields."
