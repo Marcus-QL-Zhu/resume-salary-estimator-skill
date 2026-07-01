@@ -74,6 +74,8 @@ Interpretation:
 
 - Treat education as a baseline/profile feature, not a resume-text premium by default.
 - Validate apparent and residual lift before assigning any numeric adjustment.
+- Report whether education remains meaningful after function, level, and experience controls.
+- Compare model performance before and after adding education features; do not keep education weights solely because they feel intuitively right.
 - Domain fit matters. A technical master's degree may matter more in engineering roles, while MBA or international language signals may matter more in product, strategy, sales, and general-management roles.
 - If education is not included in the objective model, explicitly disclose that it was used only in qualitative analysis.
 

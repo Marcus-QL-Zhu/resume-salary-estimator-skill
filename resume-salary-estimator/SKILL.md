@@ -20,7 +20,8 @@ The skill is domain-general. Do not assume any specific platform, employer datas
 
 2. Build the baseline model first.
    - Use structured features such as years of experience, current function, current level, target function, target level, education, location, and work mode.
-   - Include education fields when available: highest degree, overseas education, elite-school signal, field relevance, and international language signal.
+   - Include education fields when available only as auditable model inputs: highest degree, overseas education, elite-school signal, field relevance, and international language signal.
+   - Before assigning numeric weight to education, report sample size, apparent salary lift, residual lift, and whether model performance improves after adding education features.
    - Keep a simple experience-only curve as a transparent benchmark.
    - Fit a stronger baseline with role/function/level controls before interpreting resume text signals.
 
